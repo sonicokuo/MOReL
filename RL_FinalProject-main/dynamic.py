@@ -77,13 +77,17 @@ class USAD():
         for i in range(self.model_num):
             self.optimizers[i] = optimizer(self.models[i].parameters())
             self.losses[i] = nn.MSELoss()
-
+        starting_epoch = 0
         if opt.continue_training is True:
+            # print('============continue training===========')
+            starting_epoch = opt.load_epoch_num + 1  # loading epoch=0 means continuing from epoch=1
             for i in range(self.model_num):
-                self.models[i] = torch.load(
-                    "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=opt.load_epoch_num, model_idx=i))
+                self.models[i].load_state_dict(torch.load(
+                    "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=opt.load_epoch_num,
+                                                                            model_idx=i)))
 
-        for epoch in range(epochs):
+        for epoch in range(starting_epoch, epochs):
+            print('epoch={epoch}'.format(epoch=epoch))
             for i, batch in enumerate(tqdm(dataloader)):
                 state, action, target = batch
 
