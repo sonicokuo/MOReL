@@ -30,7 +30,7 @@ def main():
     tensorboard_dir = os.path.join(run_log_dir, "tensorboard_record")
     writer = SummaryWriter(tensorboard_dir)
 
-    data = Data("ant-expert-v2")
+    data = Data("maze2d-umaze-v1")
     dataloader = DataLoader(data, batch_size=256, shuffle=True)
 
     model = Morel(data.state_dim, data.action_dim, writer, opt)
