@@ -11,8 +11,9 @@ from PPO import PPO2
 from tqdm import tqdm
 
 class Morel:
-	def __init__(self, state_dim, action_dim, writer, device = "cuda:0"):
-		self.dynamic = USAD(state_dim, action_dim, state_dim+1, 1.0)
+	def __init__(self, state_dim, action_dim, writer, opt, device = "cuda:0"):
+		self.opt = opt
+		self.dynamic = USAD(state_dim, action_dim, state_dim+1, 1.0, opt)
 		self.policy = PPO2(state_dim, action_dim)
 		self.device = device
 		self.writer = writer
@@ -22,7 +23,7 @@ class Morel:
 		self.dataloader = dataloader
 
 		print("---------------- Beginning Dynamics Training ----------------")
-		self.dynamic.train(self.dataloader)
+		self.dynamic.train(self.dataloader, self.opt)
 		print("---------------- Ending Dynamics Training ----------------")
 		fakeenv = FakeEnv(self.dynamic,
 							self.data.obs_mean,

@@ -41,10 +41,11 @@ class dynamic(nn.Module):
 
 
 class USAD():
-    def __init__(self, state_dim, action_dim, output_dim, threshold, model_num=4, device="cuda:0"):
+    def __init__(self, state_dim, action_dim, output_dim, threshold, opt, model_num=4, device="cuda:0"):
         self.threshold = threshold
         self.device = device
         self.model_num = model_num
+        self.opt = opt
 
         self.models = []
 
@@ -67,15 +68,14 @@ class USAD():
 
         return loss
 
-    def train(self, dataloader, epochs=5, optimizer=torch.optim.Adam, loss=nn.MSELoss):
+    def train(self, dataloader, opt, optimizer=torch.optim.Adam, loss=nn.MSELoss):
         path = "../models/"
         if not os.path.isdir(path):
             os.mkdir(path)
         self.optimizers = [None] * self.model_num
         self.losses = [None] * self.model_num
-        opt = config.get_options()
         for i in range(self.model_num):
-            self.optimizers[i] = optimizer(self.models[i].parameters())
+            self.optimizers[i] = optimizer(self.models[i].parameters(), lr=5e-4)
             self.losses[i] = nn.MSELoss()
         starting_epoch = 0
         if opt.continue_training is True:
@@ -86,7 +86,7 @@ class USAD():
                     "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=opt.load_epoch_num,
                                                                             model_idx=i)))
 
-        for epoch in range(starting_epoch, epochs):
+        for epoch in range(starting_epoch, opt.epochs):
             print('epoch={epoch}'.format(epoch=epoch))
             for i, batch in enumerate(tqdm(dataloader)):
                 state, action, target = batch

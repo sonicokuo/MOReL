@@ -15,28 +15,31 @@ from datetime import datetime
 
 import numpy as np
 import argparse
+import config
+
 
 def main():
-	# Create directory for results
-	log_dir = "../results/"
-	if (not os.path.isdir(log_dir)):
-		os.mkdir(log_dir)
+    # Create directory for results
+    log_dir = "../results/"
+    if (not os.path.isdir(log_dir)):
+        os.mkdir(log_dir)
+    opt = config.get_options()
+    run_log_dir = os.path.join(log_dir, datetime.now().strftime("%Y%m%d-%H%M%S"))
+    os.mkdir(run_log_dir)
 
-	run_log_dir = os.path.join(log_dir, datetime.now().strftime("%Y%m%d-%H%M%S"))
-	os.mkdir(run_log_dir)
+    tensorboard_dir = os.path.join(run_log_dir, "tensorboard_record")
+    writer = SummaryWriter(tensorboard_dir)
 
-	tensorboard_dir = os.path.join(run_log_dir, "tensorboard_record")
-	writer = SummaryWriter(tensorboard_dir)
+    data = Data("ant-expert-v2")
+    dataloader = DataLoader(data, batch_size=256, shuffle=True)
 
-	data = Data("maze2d-umaze-v1")
-	dataloader = DataLoader(data, batch_size=10, shuffle=True)
+    model = Morel(data.state_dim, data.action_dim, writer, opt)
 
-	model = Morel(data.state_dim, data.action_dim, writer)
+    model.train(data, dataloader)
 
-	model.train(data, dataloader)
+    # Evaluate the rewards
+    model.eval(data.env)
 
-	# Evaluate the rewards
-	model.eval(data.env)
 
 if __name__ == '__main__':
-	main()
+    main()
