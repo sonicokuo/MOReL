@@ -47,7 +47,7 @@ class Morel:
 			total_rewards.extend(info["episode_rewards"])
 
 			if self.writer is not None:
-				self.tensorboard_writer.add_scalar('Metrics/eval_episode_reward', sum(info["episode_rewards"])/len(info["episode_rewards"]), i)
+				self.writer.add_scalar('Metrics/eval_episode_reward', sum(info["episode_rewards"])/len(info["episode_rewards"]), i)
 
 		print("Final evaluation reward: {}".format(sum(total_rewards)/len(total_rewards)))
 
