@@ -7,13 +7,13 @@ import numpy as np
 from tqdm import tqdm
 import os
 
+
 class ActorCriticPolicy(nn.Module):
     def __init__(self, input_dim,
-                output_dim,
-                n_neurons = 64,
-                activation = nn.Tanh,
-                distribution = torch.distributions.multivariate_normal.MultivariateNormal):
-
+                 output_dim,
+                 n_neurons=32,
+                 activation=nn.Tanh,
+                 distribution=torch.distributions.multivariate_normal.MultivariateNormal):
         super(ActorCriticPolicy, self).__init__()
 
         # Store configuration parameters
@@ -36,11 +36,11 @@ class ActorCriticPolicy(nn.Module):
         self.h1_actv = activation()
         self.value_head = nn.Linear(n_neurons, 1)
 
-        self.var = torch.nn.Parameter(torch.tensor([0.0] * output_dim).cuda(), requires_grad = True)
+        self.var = torch.nn.Parameter(torch.tensor([0.0] * output_dim).cuda(), requires_grad=True)
 
         self.mean_activation = nn.Tanh()
 
-    def forward(self, obs, action = None):
+    def forward(self, obs, action=None):
         # Policy Forward Pass
         x = self.h0(obs)
         x = self.h0_act(x)
@@ -49,7 +49,7 @@ class ActorCriticPolicy(nn.Module):
         action_logit = self.output_layer(x)
 
         # Generate action distribution
-        mean = action_logit[:,0:self.output_dim]
+        mean = action_logit[:, 0:self.output_dim]
         var = torch.exp(self.var)
         action_dist = self.distribution(mean, torch.diag_embed(var))
 
@@ -73,7 +73,7 @@ class ActorCriticPolicy(nn.Module):
 
 
 class PPO2():
-    def __init__(self, input_dim, output_dim, device = "cuda:0", network = ActorCriticPolicy):
+    def __init__(self, input_dim, output_dim, device="cuda:0", network=ActorCriticPolicy):
 
         # Store device on which to allocate tensors
         self.device = device
@@ -82,10 +82,10 @@ class PPO2():
         self.output_dim = output_dim
 
         # Instantiate Actor Critic Policy
-        self.policy = network(input_dim, output_dim, n_neurons=64).to(self.device)
+        self.policy = network(input_dim, output_dim, n_neurons=32).to(self.device)
 
-    def forward(self, observation, action = None):
-        return self.policy(observation, action = action)
+    def forward(self, observation, action=None):
+        return self.policy(observation, action=action)
 
     def generate_experience(self, env, n_steps, gamma, lam):
 
@@ -93,10 +93,10 @@ class PPO2():
         done = True
 
         # Initialize memory buffer
-        mb_obs, mb_rewards, mb_actions, mb_values, mb_done, mb_neg_log_prob = [],[],[],[],[],[]
+        mb_obs, mb_rewards, mb_actions, mb_values, mb_done, mb_neg_log_prob = [], [], [], [], [], []
         info = {
-            "episode_rewards" : [],
-            "HALT" : 0
+            "episode_rewards": [],
+            "HALT": 0
         }
         rewards = 0
         total_reward = 0
@@ -105,25 +105,23 @@ class PPO2():
         # For n in range number of steps
         with torch.set_grad_enabled(False):
             for i in range(n_steps):
-                if(done):
+                if (done):
 
                     info["HALT"] += env_info.get("HALT", 0)
 
                     obs = env.reset()
                     done = False
 
-
                     # Convert obs to torch tensor
-                    if(not isinstance(env, FakeEnv)):
+                    if (not isinstance(env, FakeEnv)):
                         obs = torch.from_numpy(obs.copy()).float().to(self.device)
                     obs = torch.unsqueeze(obs, 0)
 
                     info["episode_rewards"].append(total_reward)
                     total_reward = 0
 
-
                 # Choose action
-                action, neg_log_prob, _, value = self.forward(observation = obs)
+                action, neg_log_prob, _, value = self.forward(observation=obs)
 
                 # Retrieve values
                 action = torch.squeeze(action)
@@ -142,7 +140,7 @@ class PPO2():
                 # If we are interacting with a FakeEnv, we can safely keep the action as a torch tensor
                 # Else, we must convert to a numpy array
                 # If obs comes as numpy array, convert to torch tensor as well
-                if(isinstance(env, FakeEnv)):
+                if (isinstance(env, FakeEnv)):
                     obs, rewards, done = env.step(action)
 
                     total_reward += rewards
@@ -161,7 +159,7 @@ class PPO2():
                 mb_rewards.append(rewards)
 
                 obs = torch.unsqueeze(obs, 0)
-                if(self.render):
+                if (self.render):
                     env.render()
 
             # Convert memory buffer lists to numpy arrays
@@ -188,8 +186,8 @@ class PPO2():
                     next_non_terminal = 1.0 - done
                     next_values = last_value
                 else:
-                    next_non_terminal = 1.0 - mb_done[t+1]
-                    next_values = mb_values[t+1]
+                    next_non_terminal = 1.0 - mb_done[t + 1]
+                    next_values = mb_values[t + 1]
 
                 delta = mb_rewards[t] + gamma * next_values * next_non_terminal - mb_values[t]
                 mb_advs[t] = last_gae_lam = delta + gamma * lam * next_non_terminal * last_gae_lam
@@ -200,14 +198,14 @@ class PPO2():
         return mb_rewards, mb_obs, mb_returns, mb_done, mb_actions, mb_values, mb_neg_log_prob, info
 
     def train_step(self, clip_range,
-                        entropy_coef,
-                        value_coef,
-                        obs,
-                        returns,
-                        dones,
-                        old_actions,
-                        old_values,
-                        old_neg_log_probs):
+                   entropy_coef,
+                   value_coef,
+                   obs,
+                   returns,
+                   dones,
+                   old_actions,
+                   old_values,
+                   old_neg_log_probs):
 
         # Create torch tensors and send to correct device
         # returns = torch.tensor(returns).float().to(self.device)
@@ -226,39 +224,38 @@ class PPO2():
         self.policy.train()
         with torch.set_grad_enabled(True):
             # Feed batch through policy network
-            actions, neg_log_probs, entropies, values = self.forward(obs, action = old_actions)
+            actions, neg_log_probs, entropies, values = self.forward(obs, action=old_actions)
 
             loss, pg_loss, value_loss, entropy_mean, approx_kl = self.loss(clip_range,
-                                                                            entropy_coef,
-                                                                            value_coef,
-                                                                            returns,
-                                                                            values,
-                                                                            neg_log_probs,
-                                                                            entropies,
-                                                                            advantages,
-                                                                            old_values,
-                                                                            old_neg_log_probs)
+                                                                           entropy_coef,
+                                                                           value_coef,
+                                                                           returns,
+                                                                           values,
+                                                                           neg_log_probs,
+                                                                           entropies,
+                                                                           advantages,
+                                                                           old_values,
+                                                                           old_neg_log_probs)
 
             # Backprop from loss
             loss.backward()
 
             return loss, pg_loss, value_loss, entropy_mean, approx_kl
 
-
-    def train(self, env, optimizer = torch.optim.Adam,
-                        lr =  0.00027,
-                        n_steps = 1024,
-                        time_steps = 1e6,
-                        clip_range = 0.2,
-                        entropy_coef = 0.01,
-                        value_coef = 0.5,
-                        num_batches = 4,
-                        gamma = 0.99,
-                        lam = 0.95,
-                        max_grad_norm = 0.5,
-                        num_train_epochs = 4,
-                        summary_writer = None,
-                        render = False):
+    def train(self, env, optimizer=torch.optim.Adam,
+              lr=0.00027,
+              n_steps=1024,
+              time_steps=1e6,
+              clip_range=0.2,
+              entropy_coef=0.01,
+              value_coef=0.5,
+              num_batches=4,
+              gamma=0.99,
+              lam=0.95,
+              max_grad_norm=0.5,
+              num_train_epochs=4,
+              summary_writer=None,
+              render=False):
 
         self.render = render
 
@@ -266,12 +263,13 @@ class PPO2():
         n_updates = int(time_steps // n_steps)
 
         # Instantiate optimizer
-        self.policy_optim = optimizer(self.policy.parameters(), lr = lr)
+        self.policy_optim = optimizer(self.policy.parameters(), lr=lr)
 
         # main train loop
         for update in tqdm(range(n_updates)):
             # Collect new experiences using the current policy
-            rewards, obs, returns, dones, actions, values, neg_log_probs, info = self.generate_experience(env, n_steps, gamma, lam)
+            rewards, obs, returns, dones, actions, values, neg_log_probs, info = self.generate_experience(env, n_steps,
+                                                                                                          gamma, lam)
             indices = np.arange(n_steps)
 
             # Loop over train epochs
@@ -283,8 +281,8 @@ class PPO2():
                 batch_size = n_steps // num_batches
 
                 # If not evenly divisible, add 1 sample to each batch, last batch will automatically be smaller
-                if(n_steps % num_batches):
-                    batch_size +=1
+                if (n_steps % num_batches):
+                    batch_size += 1
 
                 # Loop over batches in single epoch
                 for batch_num in range(num_batches):
@@ -292,16 +290,17 @@ class PPO2():
                     self.policy.zero_grad()
 
                     # Get indices for batch
-                    if(batch_num != num_batches - 1):
-                        batch_indices = indices[batch_num*batch_size:(batch_num + 1)*batch_size]
+                    if (batch_num != num_batches - 1):
+                        batch_indices = indices[batch_num * batch_size:(batch_num + 1) * batch_size]
                     else:
-                        batch_indices = indices[batch_num*batch_size:]
+                        batch_indices = indices[batch_num * batch_size:]
 
                     # Generate batch
                     batch = (arr[batch_indices] for arr in (obs, returns, dones, actions, values, neg_log_probs))
 
                     # Run train step on batch
-                    loss, pg_loss, value_loss, entropy, approx_kl = self.train_step(clip_range, entropy_coef, value_coef, *batch)
+                    loss, pg_loss, value_loss, entropy, approx_kl = self.train_step(clip_range, entropy_coef,
+                                                                                    value_coef, *batch)
 
                     # Clip gradients
                     torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
@@ -310,24 +309,25 @@ class PPO2():
                     self.policy_optim.step()
 
             # Tensorboard
-            if(summary_writer is not None):
-                summary_writer.add_scalar('Loss/total', loss, update*n_steps)
-                summary_writer.add_scalar('Loss/policy', pg_loss, update*n_steps)
-                summary_writer.add_scalar('Loss/value', value_loss, update*n_steps)
-                summary_writer.add_scalar('Metrics/entropy', entropy, update*n_steps)
-                summary_writer.add_scalar('Metrics/approx_kl', approx_kl, update*n_steps)
-                summary_writer.add_scalar('Metrics/max_reward', sum(info["episode_rewards"])/len(info["episode_rewards"]), update*n_steps)
+            if (summary_writer is not None):
+                summary_writer.add_scalar('Loss/total', loss, update * n_steps)
+                summary_writer.add_scalar('Loss/policy', pg_loss, update * n_steps)
+                summary_writer.add_scalar('Loss/value', value_loss, update * n_steps)
+                summary_writer.add_scalar('Metrics/entropy', entropy, update * n_steps)
+                summary_writer.add_scalar('Metrics/approx_kl', approx_kl, update * n_steps)
+                summary_writer.add_scalar('Metrics/max_reward',
+                                          sum(info["episode_rewards"]) / len(info["episode_rewards"]), update * n_steps)
 
     def loss(self, clip_range,
-                    entropy_coef,
-                    value_coef,
-                    returns,
-                    values,
-                    neg_log_probs,
-                    entropies,
-                    advantages,
-                    old_values,
-                    old_neg_log_probs):
+             entropy_coef,
+             value_coef,
+             returns,
+             values,
+             neg_log_probs,
+             entropies,
+             advantages,
+             old_values,
+             old_neg_log_probs):
 
         ## Entropy loss ##
         entropy_loss = entropies.mean()
@@ -336,8 +336,8 @@ class PPO2():
         # Clip value update
         values_clipped = old_values + torch.clamp(values - old_values, min=-clip_range, max=clip_range)
 
-        value_loss1 = (values - returns)**2
-        value_loss2 = (values_clipped - returns)**2
+        value_loss1 = (values - returns) ** 2
+        value_loss2 = (values_clipped - returns) ** 2
 
         value_loss = .5 * torch.mean(torch.max(value_loss1, value_loss2))
 
@@ -347,10 +347,9 @@ class PPO2():
         pg_losses1 = -advantages * ratios
         pg_losses2 = -advantages * torch.clamp(ratios, 1.0 - clip_range, 1.0 + clip_range)
 
-
         pg_loss = torch.mean(torch.max(pg_losses1, pg_losses2))
 
-        approx_kl = 0.5 * torch.mean((neg_log_probs - old_neg_log_probs)**2)
+        approx_kl = 0.5 * torch.mean((neg_log_probs - old_neg_log_probs) ** 2)
 
         ## Total Loss ##
         loss = pg_loss - (entropy_loss * entropy_coef) + (value_loss * value_coef)
@@ -373,7 +372,6 @@ class PPO2():
             obs = torch.unsqueeze(obs, 0)
 
             # Choose action
-            action, _, _, _ = self.forward(observation = obs)
-
+            action, _, _, _ = self.forward(observation=obs)
 
         return torch.squeeze(action)

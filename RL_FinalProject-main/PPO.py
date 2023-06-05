@@ -89,7 +89,7 @@ class PPO2():
         self.output_dim = output_dim
 
         # Instantiate Actor Critic Policy
-        self.policy = network(input_dim, output_dim, n_neurons=64).to(self.device)
+        self.policy = network(input_dim, output_dim, n_neurons=32).to(self.device)
 
     def forward(self, observation, action=None):
         return self.policy(observation, action=action)
