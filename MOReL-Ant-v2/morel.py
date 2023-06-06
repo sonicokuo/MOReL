@@ -35,7 +35,9 @@ class Morel:
 							self.data.delta_std,
 							self.data.reward_mean,
 							self.data.reward_std,
-							self.data.initial_obs)
+							self.data.initial_obs,
+							self.initial_obs_mean,
+							self.initial_obs_std)
 
 		print("---------------- Beginning Policy Training ----------------")
 		self.policy.train(fake_env, summary_writer=self.writer)

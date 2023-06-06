@@ -33,15 +33,14 @@ class Data(Dataset):
 		#self.env.step(self.env.action_space.sample())
 		dataset = self.env.get_dataset()
 
-		self.obs = dataset["observations"][1:-1]
-		self.action = dataset["actions"][1:-1]
-		self.delta = dataset["observations"][2:] - self.obs
-		self.reward = dataset["rewards"][2:]
+		self.obs = dataset["observations"][:-1]
+		self.action = dataset["actions"][:-1]
+		self.delta = dataset["observations"][1:] - self.obs
+		self.reward = dataset["rewards"][:-1]
 
 		self.state_dim = dataset["observations"][0].shape[0]
 		self.action_dim = dataset["actions"][0].shape[0]
 
-		self.initial_obs = dataset["observations"][0]
 
 		self.obs_mean = self.obs.mean()
 		self.obs_std = self.obs.std()
@@ -60,6 +59,20 @@ class Data(Dataset):
 		self.delta = (self.delta - self.delta_mean) / self.delta_std
 		self.reward = (self.reward - self.reward_mean) / self.reward_std
 
+		self.done = dataset["timeouts"][:-1]
+		self.initial_obs = np.roll(self.done, 1)
+		self.initial_obs[0] = True
+
+		self.initial_obs = self.obs[self.initial_obs]
+		self.initial_obs_mean = self.initial_obs.mean()
+		self.initial_obs_std = self.initial_obs.std()
+
+		self.obs = np.delete(self.obs, self.done, axis=0)
+		self.action = np.delete(self.action, self.done, axis=0)
+		self.delta = np.delete(self.delta, self.done, axis=0)
+		self.reward = np.delete(self.reward, self.done, axis=0)
+
+
 		self.device = device
 
 	def __getitem__(self, idx):
@@ -69,7 +82,7 @@ class Data(Dataset):
 		return feed1, feed2, target
 
 	def __len__(self):
-		return (len(self.obs)-1)
+		return len(self.obs)
 
 
 

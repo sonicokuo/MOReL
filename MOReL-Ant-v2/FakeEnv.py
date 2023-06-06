@@ -15,6 +15,8 @@ class FakeEnv:
 						reward_mean,
 						reward_std,
 						start_states,
+						start_states_mean,
+						start_states_std,
 						penalty = -100,
 						timeout = 300,
 						device = "cuda:0"):
@@ -31,6 +33,8 @@ class FakeEnv:
 		self.delta_std = torch.tensor(delta_std).float().to(self.device)
 		self.reward_mean = torch.tensor(reward_mean).float().to(self.device)
 		self.reward_std = torch.tensor(reward_std).float().to(self.device)
+		self.start_states_mean = torch.tensor(start_states_mean).float().to(self.device)
+		self.start_states_std = torch.tensor(start_states_std).float().to(self.device)
 
 		self.start_states = start_states
 		self.timeout = timeout
@@ -39,8 +43,9 @@ class FakeEnv:
 		self.steps = 0
 
 	def reset(self):
-		next_state = torch.tensor(self.start_states).float().to(self.device)
-		self.state = (next_state - self.obs_mean) / self.obs_std
+		idx = np.random.chioce(self.start_states.shape[0])
+		next_state = torch.tensor(self.start_states[idx]).float().to(self.device)
+		self.state = (next_state - self.start_states_mean) / self.start_states_std
 
 		return next_state
 
