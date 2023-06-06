@@ -14,7 +14,7 @@ class Morel:
 	def __init__(self, state_dim, action_dim, writer, opt, device = "cuda:0"):
 		self.opt = opt
 		self.dynamic = USAD(state_dim, action_dim, state_dim+1, 1.0, opt)
-		self.policy = PPO2(state_dim, action_dim)
+		self.policy = PPO2(state_dim, action_dim, opt)
 		self.device = device
 		self.writer = writer
 

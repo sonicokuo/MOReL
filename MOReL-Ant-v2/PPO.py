@@ -73,7 +73,7 @@ class ActorCriticPolicy(nn.Module):
 
 
 class PPO2():
-    def __init__(self, input_dim, output_dim, device = "cuda:0", network = ActorCriticPolicy):
+    def __init__(self, input_dim, output_dim, opt, device = "cuda:0", network = ActorCriticPolicy):
 
         # Store device on which to allocate tensors
         self.device = device
@@ -83,6 +83,7 @@ class PPO2():
 
         # Instantiate Actor Critic Policy
         self.policy = network(input_dim, output_dim, n_neurons=32).to(self.device)
+        self.opt = opt
 
     def forward(self, observation, action = None):
         return self.policy(observation, action = action)
@@ -268,8 +269,16 @@ class PPO2():
         # Instantiate optimizer
         self.policy_optim = optimizer(self.policy.parameters(), lr = lr)
 
+        starting_epoch = 0
+        # load policy
+        if self.opt.continue_training_policy is True:
+            starting_epoch = self.opt.load_epoch_num_policy + 1
+            self.policy.load_state_dict(torch.load(
+                "../models/policy_{train_epoch}.pt".format(train_epoch=self.opt.load_epoch_num_policy)))
+
         # main train loop
-        for update in tqdm(range(n_updates)):
+        # n_updates = 5
+        for update in tqdm(range(starting_epoch, n_updates)):
             # Collect new experiences using the current policy
             rewards, obs, returns, dones, actions, values, neg_log_probs, info = self.generate_experience(env, n_steps, gamma, lam)
             indices = np.arange(n_steps)
@@ -308,6 +317,9 @@ class PPO2():
 
                     # Run optimizer step
                     self.policy_optim.step()
+
+            if update % self.opt.save_freq == 0:
+                torch.save(self.policy.state_dict(), "../models/policy_{train_epoch}.pt".format(train_epoch=update))
 
             # Tensorboard
             if(summary_writer is not None):
