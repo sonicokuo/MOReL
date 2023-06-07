@@ -23,9 +23,11 @@ class Morel:
 		self.dataloader = dataloader
 
 		print("---------------- Beginning Dynamics Training ----------------")
+		# Train dynamic model
 		self.dynamic.train(self.dataloader, self.opt)
 		print("---------------- Ending Dynamics Training ----------------")
 
+		# Use the trained dyncamic model to build a fake environment
 		fake_env = FakeEnv(self.dynamic,
 							self.data.obs_mean,
 							self.data.obs_std,
@@ -36,19 +38,24 @@ class Morel:
 							self.data.reward_mean,
 							self.data.reward_std,
 							self.data.initial_obs,
-							self.initial_obs_mean,
-							self.initial_obs_std)
+							self.data.initial_obs_mean,
+							self.data.initial_obs_std)
 
 		print("---------------- Beginning Policy Training ----------------")
+		# Train PPO
 		self.policy.train(fake_env, summary_writer=self.writer)
 		print("---------------- Ending Policy Training ----------------")
 
-	# Evaluate average rewards of every episode, and the final evaluation reward
+	# Evaluate PPO model average rewards of every episode (given the # of trajectories), and the final evaluation reward
 	def eval(self, env):
 		print("---------------- Beginning Policy Evaluation ----------------")
 		total_rewards = []
-		for i in tqdm(range(25)):
-			_, _, _, _, _, _, _, info = self.policy.generate_experience(env, 512, 0.95, 0.99)
+		# Evaluate PPO using a # of trajectories
+		num_trajectories = 25
+		for i in tqdm(range(num_trajectories)):
+			# Experience replay with a # of trajectory steps
+			num_trajectory_steps = 512
+			_, _, _, _, _, _, _, info = self.policy.generate_experience(env, num_trajectory_steps, 0.95, 0.99)
 			total_rewards.extend(info["episode_rewards"])
 
 			if self.writer is not None:

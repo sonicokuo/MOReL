@@ -72,11 +72,14 @@ class USAD():
         path = "../models/"
         if not os.path.isdir(path):
             os.mkdir(path)
+
         self.optimizers = [None] * self.model_num
         self.losses = [None] * self.model_num
+
         for i in range(self.model_num):
             self.optimizers[i] = optimizer(self.models[i].parameters(), lr=5e-4)
             self.losses[i] = nn.MSELoss()
+
         starting_epoch = 0
         if opt.continue_training is True:
             # print('============continue training===========')
@@ -92,11 +95,10 @@ class USAD():
                 state, action, target = batch
 
                 loss_val = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
-            if epoch % opt.save_freq == 0:
+            if epoch % opt.save_freq == 9:
                 for i in range(self.model_num):
                     torch.save(self.models[i].state_dict(),
-                               "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch, model_idx=i))
-
+                               "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=i))
 
     def checker(self, predictions):
         dis = scipy.spatial.distance_matrix(predictions, predictions)

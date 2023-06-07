@@ -43,7 +43,7 @@ class FakeEnv:
 		self.steps = 0
 
 	def reset(self):
-		idx = np.random.chioce(self.start_states.shape[0])
+		idx = np.random.choice(self.start_states.shape[0])
 		next_state = torch.tensor(self.start_states[idx]).float().to(self.device)
 		self.state = (next_state - self.start_states_mean) / self.start_states_std
 
@@ -66,7 +66,7 @@ class FakeEnv:
 
 		self.state = (next_state - self.obs_mean) / self.obs_std
 
-		out_of_field = self.dynamic_model.checker(predictions.cpu().numpy())
+		raven = self.dynamic_model.checker(predictions.cpu().numpy())
 
 		if(out_of_field):
 			rewards = self.penalty

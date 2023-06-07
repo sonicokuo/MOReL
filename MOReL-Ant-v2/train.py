@@ -27,6 +27,7 @@ def main():
     run_log_dir = os.path.join(log_dir, datetime.now().strftime("%Y%m%d-%H%M%S"))
     os.mkdir(run_log_dir)
 
+    # Create tensorboard record
     tensorboard_dir = os.path.join(run_log_dir, "tensorboard_record")
     writer = SummaryWriter(tensorboard_dir)
 
@@ -35,13 +36,12 @@ def main():
     data = Data("ant-expert-v2")
     dataloader = DataLoader(data, batch_size=256, shuffle=True)
 
+    # Train MORel model
     model = Morel(data.state_dim, data.action_dim, writer, opt)
-
     model.train(data, dataloader)
 
     # Evaluate the rewards
     model.eval(data.env)
-
 
 if __name__ == '__main__':
     main()

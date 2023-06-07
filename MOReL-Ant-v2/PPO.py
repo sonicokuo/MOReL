@@ -330,6 +330,7 @@ class PPO2():
                 summary_writer.add_scalar('Metrics/approx_kl', approx_kl, update*n_steps)
                 summary_writer.add_scalar('Metrics/max_reward', sum(info["episode_rewards"])/len(info["episode_rewards"]), update*n_steps)
 
+
     def loss(self, clip_range,
                     entropy_coef,
                     value_coef,

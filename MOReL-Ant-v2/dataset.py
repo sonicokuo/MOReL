@@ -41,7 +41,6 @@ class Data(Dataset):
 		self.state_dim = dataset["observations"][0].shape[0]
 		self.action_dim = dataset["actions"][0].shape[0]
 
-
 		self.obs_mean = self.obs.mean()
 		self.obs_std = self.obs.std()
 
@@ -71,7 +70,6 @@ class Data(Dataset):
 		self.action = np.delete(self.action, self.done, axis=0)
 		self.delta = np.delete(self.delta, self.done, axis=0)
 		self.reward = np.delete(self.reward, self.done, axis=0)
-
 
 		self.device = device
 
