@@ -33,7 +33,7 @@ def main():
 
     # print(gym.__version__)
     # print(d4rl.__version__)
-    data = Data("ant-expert-v2")
+    data = Data("ant-random-v0")
     dataloader = DataLoader(data, batch_size=256, shuffle=True)
 
     # Train MORel model

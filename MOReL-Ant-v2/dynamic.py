@@ -68,7 +68,7 @@ class USAD():
         return loss
 
 
-    def train(self, dataloader, opt, optimizer=torch.optim.Adam, loss=nn.MSELoss):
+    def train(self, dataloader, opt, optimizer=torch.optim.Adam, loss=nn.MSELoss, summary_writer=None):
         path = "../models/"
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -80,6 +80,7 @@ class USAD():
             self.optimizers[i] = optimizer(self.models[i].parameters(), lr=5e-4)
             self.losses[i] = nn.MSELoss()
 
+        # Load pretrained models
         starting_epoch = 0
         if opt.continue_training is True:
             # print('============continue training===========')
@@ -88,17 +89,22 @@ class USAD():
                 self.models[i].load_state_dict(torch.load(
                     "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=opt.load_epoch_num,
                                                                             model_idx=i)))
-
+        # Main train loop
         for epoch in range(starting_epoch, opt.epochs):
             print('epoch={epoch}'.format(epoch=epoch))
             for i, batch in enumerate(tqdm(dataloader)):
                 state, action, target = batch
 
                 loss_val = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
-            if epoch % opt.save_freq == 9:
-                for i in range(self.model_num):
-                    torch.save(self.models[i].state_dict(),
-                               "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=i))
+                #print(loss_val)
+
+            #if epoch % opt.save_freq == 9:
+            for i in range(self.model_num):
+                torch.save(self.models[i].state_dict(),
+                            "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=i))
+
+            # Tensorboard
+            summary_writer.add_scalar("Avg Dynamic Loss", sum(loss_val) / self.model_num, epoch)
 
     def checker(self, predictions):
         dis = scipy.spatial.distance_matrix(predictions, predictions)

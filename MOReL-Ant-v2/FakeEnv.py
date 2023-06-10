@@ -66,7 +66,7 @@ class FakeEnv:
 
 		self.state = (next_state - self.obs_mean) / self.obs_std
 
-		raven = self.dynamic_model.checker(predictions.cpu().numpy())
+		out_of_field = self.dynamic_model.checker(predictions.cpu().numpy())
 
 		if(out_of_field):
 			rewards = self.penalty

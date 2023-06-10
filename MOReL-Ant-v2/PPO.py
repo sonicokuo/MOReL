@@ -16,7 +16,6 @@ class ActorCriticPolicy(nn.Module):
 
         super(ActorCriticPolicy, self).__init__()
 
-        # Store configuration parameters
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.n_neurons = n_neurons
@@ -57,6 +56,7 @@ class ActorCriticPolicy(nn.Module):
         # Action is passed when doing policy updates
         if action is None:
             action = action_dist.sample()
+            action = torch.tanh(action)
 
         neg_log_prob = action_dist.log_prob(action) * -1.
         entropy = action_dist.entropy()
@@ -112,7 +112,6 @@ class PPO2():
 
                     obs = env.reset()
                     done = False
-
 
                     # Convert obs to torch tensor
                     if(not isinstance(env, FakeEnv)):
@@ -174,7 +173,7 @@ class PPO2():
             mb_neg_log_prob = torch.stack(mb_neg_log_prob)
             mb_done = np.asarray(mb_done, dtype=bool)
 
-            # get value function for last state
+            # Get value function for last state
             _, _, _, last_value = self.forward(obs)
             # last_value = last_value.cpu().numpy()
 
@@ -195,7 +194,7 @@ class PPO2():
                 delta = mb_rewards[t] + gamma * next_values * next_non_terminal - mb_values[t]
                 mb_advs[t] = last_gae_lam = delta + gamma * lam * next_non_terminal * last_gae_lam
 
-            # compute value functions
+            # Compute value functions
             mb_returns = mb_advs + mb_values
 
         return mb_rewards, mb_obs, mb_returns, mb_done, mb_actions, mb_values, mb_neg_log_prob, info
@@ -386,6 +385,5 @@ class PPO2():
 
             # Choose action
             action, _, _, _ = self.forward(observation = obs)
-
 
         return torch.squeeze(action)
