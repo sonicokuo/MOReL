@@ -17,7 +17,7 @@ class FakeEnv:
 						start_states,
 						start_states_mean,
 						start_states_std,
-						penalty = -100,
+						penalty = -50,
 						timeout = 300,
 						device = "cuda:0"):
 
@@ -55,8 +55,10 @@ class FakeEnv:
 
 		predictions = self.dynamic_model.predict(self.state, action)
 
+		# First slice means 4 dynamic models
 		delta = predictions[:, :-1]
 		rewards = predictions[:, -1]
+		#print("A:", rewards)
 
 		delta = self.delta_std * torch.mean(delta, 0) + self.delta_mean
 		cur_obs = self.obs_std * self.state + self.obs_mean
@@ -70,6 +72,7 @@ class FakeEnv:
 
 		if(out_of_field):
 			rewards = self.penalty
+		#print("B:",rewards)
 
 		self.steps += 1
 

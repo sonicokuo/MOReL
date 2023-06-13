@@ -95,16 +95,18 @@ class USAD():
             for i, batch in enumerate(tqdm(dataloader)):
                 state, action, target = batch
 
-                loss_val = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
-                #print(loss_val)
+                loss_vals = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
+                #print(loss_vals)
 
-            #if epoch % opt.save_freq == 9:
-            for i in range(self.model_num):
-                torch.save(self.models[i].state_dict(),
-                            "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=i))
+                #if epoch % opt.save_freq == 9:
+                for k in range(self.model_num):
+                    torch.save(self.models[k].state_dict(),
+                                "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=k))
 
             # Tensorboard
-            summary_writer.add_scalar("Avg Dynamic Loss", sum(loss_val) / self.model_num, epoch)
+            #summary_writer.add_scalar("Avg Dynamic Loss", sum(loss_vals) / self.model_num, epoch)
+            for j, loss_val in enumerate(loss_vals):
+                summary_writer.add_scalar('Loss/dynamics_{}'.format(j), loss_val, epoch*len(dataloader) + i)
 
     def checker(self, predictions):
         dis = scipy.spatial.distance_matrix(predictions, predictions)

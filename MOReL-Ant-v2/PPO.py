@@ -10,7 +10,7 @@ import os
 class ActorCriticPolicy(nn.Module):
     def __init__(self, input_dim,
                 output_dim,
-                n_neurons = 32,
+                n_neurons = 64,
                 activation = nn.Tanh,
                 distribution = torch.distributions.multivariate_normal.MultivariateNormal):
 
@@ -56,7 +56,7 @@ class ActorCriticPolicy(nn.Module):
         # Action is passed when doing policy updates
         if action is None:
             action = action_dist.sample()
-            action = torch.tanh(action)
+            #action = torch.tanh(action)
 
         neg_log_prob = action_dist.log_prob(action) * -1.
         entropy = action_dist.entropy()
@@ -82,7 +82,7 @@ class PPO2():
         self.output_dim = output_dim
 
         # Instantiate Actor Critic Policy
-        self.policy = network(input_dim, output_dim, n_neurons=32).to(self.device)
+        self.policy = network(input_dim, output_dim).to(self.device)
         self.opt = opt
 
     def forward(self, observation, action = None):
@@ -121,7 +121,6 @@ class PPO2():
                     info["episode_rewards"].append(total_reward)
                     total_reward = 0
 
-
                 # Choose action
                 action, neg_log_prob, _, value = self.forward(observation = obs)
 
@@ -145,9 +144,9 @@ class PPO2():
                 if(isinstance(env, FakeEnv)):
                     obs, rewards, done = env.step(action)
 
-                    total_reward += rewards
+                    total_reward += rewards.cpu().item()
 
-                    rewards = torch.tensor(rewards).float().to(self.device)
+                    #rewards = torch.tensor(rewards).float().to(self.device)
                 else:
                     obs, rewards, done, env_info = env.step(action.cpu().numpy())
 
@@ -175,7 +174,6 @@ class PPO2():
 
             # Get value function for last state
             _, _, _, last_value = self.forward(obs)
-            # last_value = last_value.cpu().numpy()
 
             # Compute generalized advantage estimate by bootstrapping
             mb_advs = torch.zeros_like(mb_rewards).float().to(self.device)
@@ -208,12 +206,6 @@ class PPO2():
                         old_actions,
                         old_values,
                         old_neg_log_probs):
-
-        # Create torch tensors and send to correct device
-        # returns = torch.tensor(returns).float().to(self.device)
-        # old_actions = torch.tensor(old_actions).to(self.device)
-        # old_values = torch.tensor(old_values).to(self.device)
-        # old_neg_log_probs = torch.tensor(old_neg_log_probs).to(self.device)
 
         # Calculate and normalize the advantages
         with torch.set_grad_enabled(False):

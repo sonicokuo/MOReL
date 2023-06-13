@@ -33,10 +33,10 @@ def main():
 
     # print(gym.__version__)
     # print(d4rl.__version__)
-    data = Data("ant-random-v0")
+    data = Data("maze2d-umaze-v1")
     dataloader = DataLoader(data, batch_size=256, shuffle=True)
 
-    # Train MORel model
+    # Train MOReL model
     model = Morel(data.state_dim, data.action_dim, writer, opt)
     model.train(data, dataloader)
 

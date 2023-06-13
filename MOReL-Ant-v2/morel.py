@@ -24,7 +24,7 @@ class Morel:
 
 		print("---------------- Beginning Dynamics Training ----------------")
 		# Train dynamic model
-		self.dynamic.train(self.dataloader, self.opt)
+		self.dynamic.train(self.dataloader, self.opt, summary_writer=self.writer)
 		print("---------------- Ending Dynamics Training ----------------")
 
 		# Use the trained dyncamic model to build a fake environment
@@ -51,7 +51,7 @@ class Morel:
 		print("---------------- Beginning Policy Evaluation ----------------")
 		total_rewards = []
 		# Evaluate PPO using a # of trajectories
-		num_trajectories = 25
+		num_trajectories = 50
 		for i in tqdm(range(num_trajectories)):
 			# Experience replay with a # of trajectory steps
 			num_trajectory_steps = 512
