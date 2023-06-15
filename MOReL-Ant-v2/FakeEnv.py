@@ -71,7 +71,7 @@ class FakeEnv:
 		out_of_field = self.dynamic_model.checker(predictions.cpu().numpy())
 
 		if(out_of_field):
-			rewards = self.penalty
+			rewards = torch.tensor(self.penalty)
 		#print("B:",rewards)
 
 		self.steps += 1

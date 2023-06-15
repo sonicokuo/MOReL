@@ -24,7 +24,7 @@ class Morel:
 
 		print("---------------- Beginning Dynamics Training ----------------")
 		# Train dynamic model
-		self.dynamic.train(self.dataloader, self.opt, summary_writer=self.writer)
+		self.dynamic.train(self.data, self.opt, summary_writer=self.writer) #self.dataloader -> self.data
 		print("---------------- Ending Dynamics Training ----------------")
 
 		# Use the trained dyncamic model to build a fake environment

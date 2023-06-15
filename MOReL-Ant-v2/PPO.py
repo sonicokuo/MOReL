@@ -146,7 +146,7 @@ class PPO2():
 
                     total_reward += rewards.cpu().item()
 
-                    #rewards = torch.tensor(rewards).float().to(self.device)
+                    rewards = torch.tensor(rewards).float().to(self.device)
                 else:
                     obs, rewards, done, env_info = env.step(action.cpu().numpy())
 

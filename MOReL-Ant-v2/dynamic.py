@@ -2,10 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import scipy.spatial
+from torch.utils.data import DataLoader
 
 import numpy as np
 from tqdm import tqdm
 import os
+
+from dataset import Data
 
 class dynamic(nn.Module):
     def __init__(self, state_dim, action_dim, output_dim, hidden_size=512):
@@ -24,7 +27,7 @@ class dynamic(nn.Module):
         )
 
         self.model = nn.Sequential(
-            nn.Linear(10, hidden_size),
+            nn.Linear(20, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
@@ -34,7 +37,7 @@ class dynamic(nn.Module):
     def forward(self, state, action):
         s = self.encoder_state(state)
         a = self.encode_action(action)
-        x = self.model(s + a)
+        x = self.model(torch.cat((s, a), -1))
         return x
 
 
@@ -47,7 +50,7 @@ class USAD():
 
         self.models = []
 
-        # Ensemble dynamic models
+        # Initialize 4 ensemble dynamic models
         for i in range(self.model_num):
             self.models.append(dynamic(state_dim, action_dim, output_dim).to(self.device))
 
@@ -67,8 +70,7 @@ class USAD():
 
         return loss
 
-
-    def train(self, dataloader, opt, optimizer=torch.optim.Adam, loss=nn.MSELoss, summary_writer=None):
+    def train(self, data, opt, optimizer=torch.optim.Adam, loss=nn.MSELoss, summary_writer=None): #dataloader -> data
         path = "../models/"
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -76,6 +78,7 @@ class USAD():
         self.optimizers = [None] * self.model_num
         self.losses = [None] * self.model_num
 
+        # Declare optimizers and losses
         for i in range(self.model_num):
             self.optimizers[i] = optimizer(self.models[i].parameters(), lr=5e-4)
             self.losses[i] = nn.MSELoss()
@@ -89,24 +92,29 @@ class USAD():
                 self.models[i].load_state_dict(torch.load(
                     "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=opt.load_epoch_num,
                                                                             model_idx=i)))
+
+        # Create separate dataloaders for each dynamic model
+        dataloader_list = [DataLoader(data, batch_size=256, shuffle=True) for i in range(4)]
+
         # Main train loop
         for epoch in range(starting_epoch, opt.epochs):
-            print('epoch={epoch}'.format(epoch=epoch))
-            for i, batch in enumerate(tqdm(dataloader)):
-                state, action, target = batch
+            print('epoch={}'.format(epoch))
+            for model_idx, dataloader in enumerate(dataloader_list):
+                for i, batch in enumerate(tqdm(dataloader)):
+                    # target = reward of the real dataset
+                    state, action, target = batch
 
-                loss_vals = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
-                #print(loss_vals)
+                    loss_val = self.train_step(model_idx, state, action, target)
+                    #loss_vals = list(map(lambda i: self.train_step(i, state, action, target), range(self.model_num)))
+                    #print(loss_vals)
 
-                #if epoch % opt.save_freq == 9:
-                for k in range(self.model_num):
-                    torch.save(self.models[k].state_dict(),
-                                "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=k))
+                    #if epoch % opt.save_freq == 9:
+                    torch.save(self.models[model_idx].state_dict(),
+                                "../models/dynamic_{train_epoch}_{model_idx}.pt".format(train_epoch=epoch+1, model_idx=model_idx))
 
-            # Tensorboard
-            #summary_writer.add_scalar("Avg Dynamic Loss", sum(loss_vals) / self.model_num, epoch)
-            for j, loss_val in enumerate(loss_vals):
-                summary_writer.add_scalar('Loss/dynamics_{}'.format(j), loss_val, epoch*len(dataloader) + i)
+                    # Tensorboard
+                    #summary_writer.add_scalar("Avg Dynamic Loss", sum(loss_vals) / self.model_num, epoch)
+                    summary_writer.add_scalar('Loss/dynamics_{model_idx}'.format(model_idx=model_idx), loss_val, epoch*len(dataloader) + i)
 
     def checker(self, predictions):
         dis = scipy.spatial.distance_matrix(predictions, predictions)
