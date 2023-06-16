@@ -35,6 +35,7 @@ Once the training of dynamic models is completed, the training of the policy wil
 ![beginpolicy](https://github.com/sonicokuo/MOReL/assets/73321093/48044214-abc6-4158-9e15-5ec7d893fb5f)
 
 Additionally, you can utilize command-line arguments to adjust certain hyperparameters of the training process. For more detailed information regarding argument settings, please refer to the `MOReL-Maze2D/config.py` file.
+![354949158_806124484190827_8417190328396178364_n](https://github.com/sonicokuo/MOReL/assets/73321093/92a0a132-c732-4a60-8029-5ee49d97fbf6)
 
 ### Issues and future works
 Regarding the Maze2D task, we have successfully trained a high-performing policy using our implementation. However, for the Ant task, we have observed that the final policy does not converge to an optimal solution. At this stage, we believe that this issue may be attributed to a tuning problem in PPO, as the dynamic model appears to be functioning correctly. We plan to conduct further investigations and address this issue in our future work. If you have any suggestions, please feel free to share them with us!
