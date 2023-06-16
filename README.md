@@ -12,7 +12,9 @@ https://zhuanlan.zhihu.com/p/489475047
 
 ### Installation Tips
 
-If you have had the package gym in your environment, we recommend that you change your gym to version 0.19.0. Because gym of higher version may lead to some errors.
+- Please use ubuntu 18.04 to build up the environment, and you may want to use ubuntu in Linux system or through wsl in Windows.
+- If you have had the package gym in your environment, we recommend that you change your gym to version 0.19.0. Because gym of higher version may lead to some errors.
+- We ues Pytorch to construct the neural networks in our implementation, so please install `torch` in your environment.
 
 ## Quick Start: Train new dynamic models and policy using MOReL from scratch
 
@@ -23,3 +25,6 @@ Please download our work to your local computer and enter one of the folder `MOR
 # start training dynamic models, and then train policy 
 train.py
 ```
+If the training is successfully executed, your terminal will show a progress bar like the picture shown below.
+![image](https://github.com/sonicokuo/MOReL/assets/73321093/9c0e97b6-01cb-47e1-99fa-1b79760ad5d7)
+
