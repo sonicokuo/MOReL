@@ -15,3 +15,5 @@ https://zhuanlan.zhihu.com/p/489475047
 If you have had the package gym in your environment, we recommend that you change your gym to version 0.19.0. Because gym of higher version may lead to some errors.
 
 ## Quick Start: Train new dynamic models and policy using MOReL from scratch
+
+Please download our work to your local computer and enter one of the folder `MORel-Ant` or `MORel-Maze2D` according to the task you want to test.
