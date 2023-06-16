@@ -23,8 +23,16 @@ Please download our work to your local computer and enter one of the folder `MOR
 ### Run
 ```shell
 # start training dynamic models, and then train policy 
-train.py
+python train.py
 ```
 If the training is successfully executed, your terminal will show a progress bar like the picture shown below.
 ![image](https://github.com/sonicokuo/MOReL/assets/73321093/9c0e97b6-01cb-47e1-99fa-1b79760ad5d7)
+
+Our implementation supports automatically saving checkpoints of models when the training goes on.  
+```shell
+# If you want to resume the training of dynamic models
+python train.py --continue_training --load_epoch_num=30
+```
+
+Besides, you can use command-line arguments to manipulate some hyperparameters of training. For detailed information of argument setting, please refer to the file `MOReL-Maze2D/config.py`.
 
