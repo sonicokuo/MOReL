@@ -36,3 +36,10 @@ python train.py --continue_training --load_epoch_num=30
 
 Besides, you can use command-line arguments to manipulate some hyperparameters of training. For detailed information of argument setting, please refer to the file `MOReL-Maze2D/config.py`.
 
+## Acknowledgements
+
+We reference the following repositories to accomplish our implementation:
+- https://github.com/SwapnilPande/MOReL
+- https://github.com/nikhilbarhate99/PPO-PyTorch
+
+
