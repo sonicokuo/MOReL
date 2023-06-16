@@ -17,3 +17,9 @@ If you have had the package gym in your environment, we recommend that you chang
 ## Quick Start: Train new dynamic models and policy using MOReL from scratch
 
 Please download our work to your local computer and enter one of the folder `MORel-Ant` or `MORel-Maze2D` according to the task you want to test.
+
+### Run
+```shell
+# start training dynamic models, and then train policy 
+train.py
+```
